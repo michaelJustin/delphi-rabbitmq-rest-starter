@@ -50,7 +50,7 @@ The **Habari STOMP Client** libraries bridge this gap perfectly for the Delphi a
 ### Get Production Ready Today
 Don't waste engineering hours writing custom boilerplate code to handle connection drops or polling loops. 
 
-👉 **[Download the 3-Month Complete Trial (€27.50) at Habarisoft.com](https://habarisoft.com)**  
+👉 **[Download the 3-Month Complete Trial (€30.00) at Habarisoft.com](https://habarisoft.com)**  
 *Full source code, multi-broker support (RabbitMQ, ActiveMQ, Artemis), and production-tested demos included.*
 
 ---
