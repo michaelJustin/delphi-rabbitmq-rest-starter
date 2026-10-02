@@ -41,6 +41,8 @@ Because Indy handles secure HTTP streams using OpenSSL, your compiled executable
 4. Copy the matching `ssleay32.dll` and `libeay32.dll` files into your project's output build directory (e.g., `.\Win32\Debug\` or `.\Win64\Debug\`) alongside the newly generated `RabbitMQRestDemo.exe`.
 5. Run the application!
 
+   ![Screenshot](assets/screenshot.png)
+
 ## 🔍 Troubleshooting & Common Errors
 
 If the starter kit fails to run or connect, check these common error messages and their solutions:
