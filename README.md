@@ -73,7 +73,7 @@ Struggling with advanced enterprise architectures, message persistence, or netwo
 
 Bypass the trial-and-error of raw HTTP setups. Upgrade to **Habari STOMP Client** for native, robust connectivity out of the box.
 
-👉 **[Get Premium Support and Download Your 3-Month Trial Here](https://habarisoft.com)**
+👉 **[Get Free Basic Support and Your 3-Month Trial Here](https://habarisoft.com)**
 
 
 ---
