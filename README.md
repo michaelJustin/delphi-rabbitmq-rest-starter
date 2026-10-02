@@ -41,6 +41,40 @@ Because Indy handles secure HTTP streams using OpenSSL, your compiled executable
 4. Copy the matching `ssleay32.dll` and `libeay32.dll` files into your project's output build directory (e.g., `.\Win32\Debug\` or `.\Win64\Debug\`) alongside the newly generated `RabbitMQRestDemo.exe`.
 5. Run the application!
 
+## 🔍 Troubleshooting & Common Errors
+
+If the starter kit fails to run or connect, check these common error messages and their solutions:
+
+### ❌ `HTTP Protocol Error: 401 Unauthorized`
+*   **Cause:** Your username or password credentials are incorrect.
+*   **Fix:** Check `RABBITMQ_USER` and `RABBITMQ_PASS` in the `.dpr` code. If you are accessing RabbitMQ remotely, note that the default `guest`/`guest` credentials **only work from localhost** by default. You will need to create an administrative user in the RabbitMQ dashboard for remote access.
+
+### ❌ `HTTP Protocol Error: 404 Not Found`
+*   **Cause 1:** The RabbitMQ Management Plugin is not enabled.
+*   **Fix 1:** Run `rabbitmq-plugins enable rabbitmq_management` and restart the broker.
+*   **Cause 2:** The specific Exchange or Virtual Host does not exist.
+*   **Fix 2:** Verify that the default Virtual Host `/` is properly URL-encoded as `%2F` in your request path. If your queue or exchange has custom naming, double-check spelling and case sensitivity.
+
+### ❌ `Socket Error # 10061: Connection Refused`
+*   **Cause:** The application cannot find a running broker at the specified IP address or port.
+*   **Fix:** Ensure RabbitMQ is running locally (check your Windows Services or Docker containers). Verify you are targeting port `15672` (the Management port) and **not** `5672` (the native AMQP protocol port).
+
+### ❌ `Error: EIdOSSLCouldNotLoadSSLLibrary: Could not load SSL library.`
+*   **Cause:** Indy cannot find the correct OpenSSL DLLs, or there is an architecture mismatch.
+*   **Fix:** 
+    1. Confirm that `ssleay32.dll` and `libeay32.dll` are in the exact same directory as your compiled `.exe`.
+    2. Check that the DLL bitness matches your compiler target. If your Delphi Project Manager is set to **Win64**, you *must* use 64-bit DLLs.
+    3. Ensure you are using **OpenSSL v1.0.2** binaries; newer versions (v1.1.x or v3.x) will cause this error in standard Indy 10 setups.
+
+---
+
+## 💡 Get Help Beyond the Basics
+Struggling with advanced enterprise architectures, message persistence, or network dropouts? 
+
+Bypass the trial-and-error of raw HTTP setups. Upgrade to **Habari STOMP Client** for native, robust connectivity out of the box.
+
+👉 **[Get Premium Support and Download Your 3-Month Trial Here](https://habarisoft.com)**
+
 
 ---
 
