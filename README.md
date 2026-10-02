@@ -24,22 +24,11 @@ rabbitmq-plugins enable rabbitmq_management
 *   **Default Port:** This activates the HTTP REST API on port `15672`.
 *   **Queue Setup:** Before running the application, log into your RabbitMQ Management Dashboard (`http://localhost:15672`), create a queue named `test-queue`, and bind it to the `amq.direct` exchange using the routing key `test-routing-key`.
 
-### 2. OpenSSL DLL Dependencies (Crucial for Indy)
-Because Indy handles secure HTTP streams using OpenSSL, your compiled executable requires the correct version and architecture (bitness) of the OpenSSL binaries (`ssleay32.dll` and `libeay32.dll`) placed in the same folder as your `.exe`.
-
-*   **Version Compatibility:** Indy 10 natively supports the **OpenSSL 1.0.2** branch. It is **not** compatible with OpenSSL 1.1.x or 3.x out of the box.
-*   **Matching Bitness:** The DLL architecture must match your **Target Compilation Platform** inside Delphi, *not* your operating system:
-    *   If compiling for **Windows 32-bit (Win32)**, you must use 32-bit OpenSSL DLLs.
-    *   If compiling for **Windows 64-bit (Win64)**, you must use 64-bit OpenSSL DLLs.
-*   **Where to Download:** Securely download the pre-compiled binaries from the official Indy-vetted archive:
-    *   👉 [Indy OpenSSL Binaries GitHub Repository](https://github.com)
-
-### 3. Delphi IDE Configuration
+### 2. Delphi IDE Configuration
 1. Open Delphi and load the `RabbitMQRestDemo.dpr` project.
 2. Select your target platform (**Win32** or **Win64**) in the Project Manager.
 3. Build the project (`Ctrl + F9`).
-4. Copy the matching `ssleay32.dll` and `libeay32.dll` files into your project's output build directory (e.g., `.\Win32\Debug\` or `.\Win64\Debug\`) alongside the newly generated `RabbitMQRestDemo.exe`.
-5. Run the application!
+4. Run the application!
 
    ![Screenshot](assets/screenshot.png)
 
@@ -60,13 +49,6 @@ If the starter kit fails to run or connect, check these common error messages an
 ### ❌ `Socket Error # 10061: Connection Refused`
 *   **Cause:** The application cannot find a running broker at the specified IP address or port.
 *   **Fix:** Ensure RabbitMQ is running locally (check your Windows Services or Docker containers). Verify you are targeting port `15672` (the Management port) and **not** `5672` (the native AMQP protocol port).
-
-### ❌ `Error: EIdOSSLCouldNotLoadSSLLibrary: Could not load SSL library.`
-*   **Cause:** Indy cannot find the correct OpenSSL DLLs, or there is an architecture mismatch.
-*   **Fix:** 
-    1. Confirm that `ssleay32.dll` and `libeay32.dll` are in the exact same directory as your compiled `.exe`.
-    2. Check that the DLL bitness matches your compiler target. If your Delphi Project Manager is set to **Win64**, you *must* use 64-bit DLLs.
-    3. Ensure you are using **OpenSSL v1.0.2** binaries; newer versions (v1.1.x or v3.x) will cause this error in standard Indy 10 setups.
 
 ---
 
