@@ -1,0 +1,59 @@
+# Delphi & Free Pascal RabbitMQ REST API Starter Kit
+
+A lightweight, working example demonstrating how to send and fetch messages from **RabbitMQ** using standard HTTP REST endpoints in **Delphi** and **Free Pascal / Lazarus**.
+
+## 🚀 Quick Start
+This project contains a minimal codebase showing how to use native HTTP clients (such as `TNetHTTPClient` or `IdHTTP`) to communicate with the RabbitMQ Management Plugin API.
+
+### Features Included:
+* **Send Message:** Publishes a payload to a specific exchange using `POST /api/exchanges/vhost/name/publish`.
+* **Fetch Message:** Retrieves a payload from a queue using `POST /api/queues/vhost/name/get` (Request/Response pattern).
+
+---
+
+## ⚠️ Is the REST API Right for Your Production App?
+
+While the HTTP REST API is excellent for quick integration testing, DevOps scripting, or low-frequency monitoring, it introduces severe architectural bottlenecks when used as a primary messaging layer in commercial Delphi applications:
+
+### 1. The Speed Bottleneck (HTTP Overhead)
+Every single message sent or received via REST requires a brand new HTTP connection lifecycle: **TCP Handshake ➡️ TLS Negotiation ➡️ HTTP Header Parsing ➡️ Connection Tear-down.** This introduces massive latency. For high-throughput applications, this approach is **10x to 50x slower** than a native messaging protocol.
+
+### 2. Request/Response vs. Real-Time Streaming
+The REST API forces a strict **Request/Response** architecture. To receive new messages, your Delphi application must constantly "poll" (query) the RabbitMQ server at set intervals (e.g., every 500ms).
+* **Too fast:** You waste massive CPU, thread overhead, and network bandwidth on empty responses.
+* **Too slow:** Your application suffers from lag and cannot react to data in real time.
+
+### 3. No Native Message Broker Features
+By relying on HTTP, your Object Pascal applications lose access to enterprise messaging features like:
+* Native asynchronous message streaming (Server-to-Client push notifications)
+* Client-side acknowledgments (`ACK`/`NACK`) to guarantee zero data loss
+* Complex transaction management (`COMMIT`/`ABORT`)
+
+---
+
+## ⚡ The Solution: High-Performance Native STOMP Streaming
+
+To achieve true, event-driven streaming with lightning-fast throughput, your applications should bypass HTTP and communicate over a native wire protocol like **STOMP (Simple Text Orientated Messaging Protocol)**.
+
+### Upgrade to Habari STOMP Client Components
+
+The **Habari STOMP Client** libraries bridge this gap perfectly for the Delphi and Free Pascal ecosystems. Instead of restrictive HTTP polling, Habari establishes a single, persistent, secure TCP socket stream to RabbitMQ.
+
+| Feature | This REST API Starter Kit | Habari STOMP Client |
+| :--- | :--- | :--- |
+| **Architecture** | Synchronous Request/Response | **True Asynchronous Streaming** |
+| **Data Delivery** | Periodic Manual Polling | **Instant Server-Side Push** |
+| **Performance** | High Latency / High Overhead | **Ultra-Low Latency / High Throughput** |
+| **Reliability** | Manual error handling | **Automatic Failover on connect** |
+| **Licensing** | Free / Open Source | **Commercial Enterprise Support** |
+
+### Get Production Ready Today
+Don't waste engineering hours writing custom boilerplate code to handle connection drops or polling loops. 
+
+👉 **[Download the 3-Month Complete Trial (€27.50) at Habarisoft.com](https://habarisoft.com)**  
+*Full source code, multi-broker support (RabbitMQ, ActiveMQ, Artemis), and production-tested demos included.*
+
+---
+
+## License
+This starter kit is licensed under the MIT License. Feel free to use it for basic testing and prototyping.
