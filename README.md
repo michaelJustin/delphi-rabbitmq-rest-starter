@@ -9,6 +9,39 @@ This project contains a minimal codebase showing how to use native HTTP clients 
 * **Send Message:** Publishes a payload to a specific exchange using `POST /api/exchanges/vhost/name/publish`.
 * **Fetch Message:** Retrieves a payload from a queue using `POST /api/queues/vhost/name/get` (Request/Response pattern).
 
+
+## 🛠️ Prerequisites & Environment Setup
+
+To run this demo successfully, your development environment and RabbitMQ broker must be properly configured. 
+
+### 1. RabbitMQ Broker Configuration
+This starter kit relies on RabbitMQ's Management Plugin, which is **not enabled by default**. 
+Open your server terminal or command prompt and run the following command to enable it:
+
+```bash
+rabbitmq-plugins enable rabbitmq_management
+```
+*   **Default Port:** This activates the HTTP REST API on port `15672`.
+*   **Queue Setup:** Before running the application, log into your RabbitMQ Management Dashboard (`http://localhost:15672`), create a queue named `test-queue`, and bind it to the `amq.direct` exchange using the routing key `test-routing-key`.
+
+### 2. OpenSSL DLL Dependencies (Crucial for Indy)
+Because Indy handles secure HTTP streams using OpenSSL, your compiled executable requires the correct version and architecture (bitness) of the OpenSSL binaries (`ssleay32.dll` and `libeay32.dll`) placed in the same folder as your `.exe`.
+
+*   **Version Compatibility:** Indy 10 natively supports the **OpenSSL 1.0.2** branch. It is **not** compatible with OpenSSL 1.1.x or 3.x out of the box.
+*   **Matching Bitness:** The DLL architecture must match your **Target Compilation Platform** inside Delphi, *not* your operating system:
+    *   If compiling for **Windows 32-bit (Win32)**, you must use 32-bit OpenSSL DLLs.
+    *   If compiling for **Windows 64-bit (Win64)**, you must use 64-bit OpenSSL DLLs.
+*   **Where to Download:** Securely download the pre-compiled binaries from the official Indy-vetted archive:
+    *   👉 [Indy OpenSSL Binaries GitHub Repository](https://github.com)
+
+### 3. Delphi IDE Configuration
+1. Open Delphi and load the `RabbitMQRestDemo.dpr` project.
+2. Select your target platform (**Win32** or **Win64**) in the Project Manager.
+3. Build the project (`Ctrl + F9`).
+4. Copy the matching `ssleay32.dll` and `libeay32.dll` files into your project's output build directory (e.g., `.\Win32\Debug\` or `.\Win64\Debug\`) alongside the newly generated `RabbitMQRestDemo.exe`.
+5. Run the application!
+
+
 ---
 
 ## ⚠️ Is the REST API Right for Your Production App?
