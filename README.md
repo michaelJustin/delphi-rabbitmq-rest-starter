@@ -77,7 +77,7 @@ The **Habari STOMP Client** libraries bridge this gap perfectly for the Delphi a
 | **Architecture** | Synchronous Request/Response | **True Asynchronous Streaming** |
 | **Data Delivery** | Periodic Manual Polling | **Instant Server-Side Push** |
 | **Performance** | High Latency / High Overhead | **Ultra-Low Latency / High Throughput** |
-| **Reliability** | Manual error handling | **Automatic Failover on connect** |
+| **Reliability** | Manual error handling | **Heartbeating / Automatic Failover on connect** |
 | **Licensing** | Free / Open Source | **Commercial Enterprise Support** |
 
 ### Get Production Ready Today
