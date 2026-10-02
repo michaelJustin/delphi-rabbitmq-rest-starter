@@ -5,10 +5,9 @@ program RabbitMQRestDemo;
 {$R *.res}
 
 uses
-  System.SysUtils,
-  System.Classes,
-  IdHTTP,
-  IdSSLOpenSSL;
+  SysUtils,
+  Classes,
+  IdHTTP;
 
 const
   // Adjust these settings to match your local or test RabbitMQ server
@@ -27,37 +26,40 @@ const
 procedure PublishViaRabbitMQREST(const AMessage: string);
 var
   IdHTTP: TIdHTTP;
-  RequestBody: TStringList;
-  ResponseStream: TStringStream;
+  JSON: TStringBuilder;
+  RequestBody: TStream;
+  ResponseBody: string;
   TargetURL: string;
 begin
-  IdHTTP := TIdHTTP.Create(nil);
-  RequestBody := TStringList.Create;
-  ResponseStream := TStringStream.Create;
+  IdHTTP := TIdHTTP.Create;
+  JSON := TStringBuilder.Create;
   try
-    IdHTTP.Request.BasicAuthentication := True;
-    IdHTTP.Request.Username := RABBITMQ_USER;
-    IdHTTP.Request.Password := RABBITMQ_PASS;
-    IdHTTP.Request.ContentType := 'application/json';
-
     // Construct JSON payload
-    RequestBody.Add('{');
-    RequestBody.Add('  "properties": {},');
-    RequestBody.Add('  "routing_key": "' + ROUTING_KEY + '",');
-    RequestBody.Add('  "payload": "' + AMessage + '",');
-    RequestBody.Add('  "payload_encoding": "string"');
-    RequestBody.Add('}');
+    JSON.Append('{');
+    JSON.Append('"properties": {},');
+    JSON.Append('"routing_key": "' + ROUTING_KEY + '",');
+    JSON.Append('"payload": "' + AMessage + '",');
+    JSON.Append('"payload_encoding": "string"');
+    JSON.Append('}');
 
-    TargetURL := Format('http://%s:%s/api/exchanges/%s/%s/publish', 
-      [RABBITMQ_HOST, RABBITMQ_PORT, RABBITMQ_VHOST, TARGET_EXCHANGE]);
+    RequestBody := TStringStream.Create(JSON.ToString, TEncoding.UTF8);
+    try
+      IdHTTP.Request.BasicAuthentication := True;
+      IdHTTP.Request.Username := RABBITMQ_USER;
+      IdHTTP.Request.Password := RABBITMQ_PASS;
+      IdHTTP.Request.ContentType := 'application/json';
 
-    Writeln('Sending message via HTTP POST...');
-    IdHTTP.Post(TargetURL, RequestBody, ResponseStream);
-    Writeln('Publish Response: ' + ResponseStream.DataString);
+      TargetURL := Format('http://%s:%s/api/exchanges/%s/%s/publish',
+        [RABBITMQ_HOST, RABBITMQ_PORT, RABBITMQ_VHOST, TARGET_EXCHANGE]);
 
+      Writeln('Sending message via HTTP POST...');
+      ResponseBody := IdHTTP.Post(TargetURL, RequestBody);
+      Writeln('Publish Response: ' + ResponseBody);
+    finally
+      RequestBody.Free;
+    end;
   finally
-    ResponseStream.Free;
-    RequestBody.Free;
+    JSON.Free;
     IdHTTP.Free;
   end;
 end;
@@ -68,13 +70,13 @@ end;
 procedure FetchViaRabbitMQREST;
 var
   IdHTTP: TIdHTTP;
-  RequestBody: TStringList;
-  ResponseStream: TStringStream;
+  JSON: TStringBuilder;
+  RequestBody: TStringStream;
+  Response: string;
   TargetURL: string;
 begin
-  IdHTTP := TIdHTTP.Create(nil);
-  RequestBody := TStringList.Create;
-  ResponseStream := TStringStream.Create;
+  IdHTTP := TIdHTTP.Create;
+
   try
     IdHTTP.Request.BasicAuthentication := True;
     IdHTTP.Request.Username := RABBITMQ_USER;
@@ -82,33 +84,38 @@ begin
     IdHTTP.Request.ContentType := 'application/json';
 
     // Construct configuration JSON for fetching
-    RequestBody.Add('{');
-    RequestBody.Add('  "vhost": "/",');
-    RequestBody.Add('  "name": "' + TARGET_QUEUE + '",');
-    RequestBody.Add('  "count": "1",');
-    RequestBody.Add('  "ackmode": "ack_requeue_false",');
-    RequestBody.Add('  "encoding": "auto"');
-    RequestBody.Add('}');
+    JSON := TStringBuilder.Create;
+    try
+      JSON.Append('{');
+      JSON.Append('  "vhost": "/",');
+      JSON.Append('  "name": "' + TARGET_QUEUE + '",');
+      JSON.Append('  "count": "1",');
+      JSON.Append('  "ackmode": "ack_requeue_false",');
+      JSON.Append('  "encoding": "auto"');
+      JSON.Append('}');
+      RequestBody := TStringStream.Create(JSON.ToString, TEncoding.UTF8);
 
-    TargetURL := Format('http://%s:%s/api/queues/%s/%s/get', 
-      [RABBITMQ_HOST, RABBITMQ_PORT, RABBITMQ_VHOST, TARGET_QUEUE]);
+      TargetURL := Format('http://%s:%s/api/queues/%s/%s/get',
+        [RABBITMQ_HOST, RABBITMQ_PORT, RABBITMQ_VHOST, TARGET_QUEUE]);
 
-    Writeln('Fetching message via HTTP POST...');
-    IdHTTP.Post(TargetURL, RequestBody, ResponseStream);
-    
-    if ResponseStream.DataString = '[]' then
-      Writeln('Fetch Response: [Queue is empty]')
-    else
-      Writeln('Fetch Response: ' + ResponseStream.DataString);
-
+      Writeln('Fetching message via HTTP POST...');
+      Response := IdHTTP.Post(TargetURL, RequestBody);
+      if Response = '[]' then
+        Writeln('Fetch Response: [Queue is empty]')
+      else
+        Writeln('Fetch Response: ' + Response);
+    finally
+      JSON.Free;
+    end;
   finally
-    ResponseStream.Free;
     RequestBody.Free;
     IdHTTP.Free;
   end;
 end;
 
 begin
+  ReportMemoryLeaksOnShutdown := True;
+
   try
     Writeln('==================================================');
     Writeln('  Delphi RabbitMQ REST API Starter Project Demo   ');
@@ -119,7 +126,7 @@ begin
     Writeln;
 
     // 1. Publish a sample message
-    PublishViaRabbitMQREST('Hello from Delphi REST API! Timestamp: ' + ColorToHex(0)); // quick random string alternative
+    PublishViaRabbitMQREST('Hello from Delphi REST API! Timestamp: ' + DateTimeToStr(Now));
     PublishViaRabbitMQREST('Test Message #' + IntToStr(Random(1000)));
     Writeln;
 
