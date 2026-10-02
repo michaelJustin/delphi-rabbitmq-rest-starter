@@ -89,6 +89,82 @@ function CharPosInSet(const AString: string;
 
 Rebuild Indy and the application after making this change.
 
+## Using the demo with Lazarus
+
+The demo can also be compiled with **Lazarus / Free Pascal (FPC)**.
+
+### Requirements
+
+* Lazarus with a recent Free Pascal compiler
+* RabbitMQ with the Management plugin enabled
+* RabbitMQ Management API available at `http://localhost:15672/`
+* A RabbitMQ user with permission to access the Management API
+
+### Opening the project
+
+Open the Lazarus project file:
+
+```text
+RabbitMQRestDemo.lpi
+```
+
+in Lazarus.
+
+If Lazarus asks to locate the project source files or Indy units, add the required Indy source directories to the project's search path.
+
+### Indy
+
+The demo uses Indy for HTTP communication. Make sure a Lazarus-compatible version of **Indy 10** is available in the FPC/Lazarus environment.
+
+Depending on how Indy was installed, you may need to add the Indy source directories to:
+
+**Project → Project Options → Compiler Options → Paths → Other unit files**
+
+Typically the relevant Indy directories include:
+
+```text
+Indy10/Lib
+Indy10/Lib/Core
+Indy10/Lib/System
+Indy10/Lib/Protocols
+```
+
+The exact paths depend on where Indy is installed.
+
+### Running the demo
+
+Start RabbitMQ and make sure the Management API is enabled. Then run the demo from Lazarus.
+
+The default Management API URL is:
+
+```text
+http://localhost:15672/
+```
+
+The demo uses the RabbitMQ Management REST API to perform operations such as declaring exchanges/queues and publishing messages.
+
+For the default RabbitMQ virtual host `/`, the `/` character must be URL-encoded as `%2F`. For example:
+
+```text
+http://localhost:15672/api/exchanges/%2F/amq.direct/publish
+```
+
+Do not replace `%2F` with `/`, as that changes the meaning of the RabbitMQ API URL.
+
+### Troubleshooting
+
+If Lazarus reports missing Indy units, check the project's unit search path and make sure the required Indy directories are included.
+
+If the demo compiles but fails to connect, first verify that RabbitMQ's Management API is reachable in a browser:
+
+```text
+http://localhost:15672/
+```
+
+The default RabbitMQ Management API port is `15672`.
+
+For authentication, the demo uses RabbitMQ's HTTP API credentials rather than the AMQP connection settings.
+
 ---
 
 ## 💡 Get Help Beyond the Basics
