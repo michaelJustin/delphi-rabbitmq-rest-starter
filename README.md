@@ -24,22 +24,13 @@ rabbitmq-plugins enable rabbitmq_management
 *   **Default Port:** This activates the HTTP REST API on port `15672`.
 *   **Queue Setup:** Before running the application, log into your RabbitMQ Management Dashboard (`http://localhost:15672`), create a queue named `test-queue`, and bind it to the `amq.direct` exchange using the routing key `test-routing-key`.
 
-### 2. OpenSSL DLL Dependencies (Crucial for Indy)
-Because Indy handles secure HTTP streams using OpenSSL, your compiled executable requires the correct version and architecture (bitness) of the OpenSSL binaries (`ssleay32.dll` and `libeay32.dll`) placed in the same folder as your `.exe`.
-
-*   **Version Compatibility:** Indy 10 natively supports the **OpenSSL 1.0.2** branch. It is **not** compatible with OpenSSL 1.1.x or 3.x out of the box.
-*   **Matching Bitness:** The DLL architecture must match your **Target Compilation Platform** inside Delphi, *not* your operating system:
-    *   If compiling for **Windows 32-bit (Win32)**, you must use 32-bit OpenSSL DLLs.
-    *   If compiling for **Windows 64-bit (Win64)**, you must use 64-bit OpenSSL DLLs.
-*   **Where to Download:** Securely download the pre-compiled binaries from the official Indy-vetted archive:
-    *   👉 [Indy OpenSSL Binaries GitHub Repository](https://github.com)
-
-### 3. Delphi IDE Configuration
+### 2. Delphi IDE Configuration
 1. Open Delphi and load the `RabbitMQRestDemo.dpr` project.
 2. Select your target platform (**Win32** or **Win64**) in the Project Manager.
 3. Build the project (`Ctrl + F9`).
-4. Copy the matching `ssleay32.dll` and `libeay32.dll` files into your project's output build directory (e.g., `.\Win32\Debug\` or `.\Win64\Debug\`) alongside the newly generated `RabbitMQRestDemo.exe`.
-5. Run the application!
+4. Run the application!
+
+   ![Screenshot](assets/screenshot.png)
 
 ## 🔍 Troubleshooting & Common Errors
 
@@ -59,12 +50,120 @@ If the starter kit fails to run or connect, check these common error messages an
 *   **Cause:** The application cannot find a running broker at the specified IP address or port.
 *   **Fix:** Ensure RabbitMQ is running locally (check your Windows Services or Docker containers). Verify you are targeting port `15672` (the Management port) and **not** `5672` (the native AMQP protocol port).
 
-### ❌ `Error: EIdOSSLCouldNotLoadSSLLibrary: Could not load SSL library.`
-*   **Cause:** Indy cannot find the correct OpenSSL DLLs, or there is an architecture mismatch.
-*   **Fix:** 
-    1. Confirm that `ssleay32.dll` and `libeay32.dll` are in the exact same directory as your compiled `.exe`.
-    2. Check that the DLL bitness matches your compiler target. If your Delphi Project Manager is set to **Win64**, you *must* use 64-bit DLLs.
-    3. Ensure you are using **OpenSSL v1.0.2** binaries; newer versions (v1.1.x or v3.x) will cause this error in standard Indy 10 setups.
+### ❗ Delphi 2009 + Indy: `Range check error` when using the default vhost
+
+If you are using **Delphi 2009 with Indy 10.6.3.14**, a request such as:
+
+```text
+http://localhost:15672/api/exchanges/%2F/amq.direct/publish
+```
+
+may raise a Delphi `ERangeError` before the HTTP request is sent.
+
+The call stack typically ends in:
+
+```text
+IdGlobal.CharIsInSet
+IdURI.TIdURI.NormalizePath
+IdURI.TIdURI.SetURI
+IdURI.TIdURI.Create
+IdHTTP.TIdCustomHTTP.PrepareRequest
+```
+
+This is caused by an incompatibility involving Delphi 2009, range checking, and the `inline` implementation of Indy's `CharPosInSet()` helper. The `%2F` in the URL is valid and is required to represent RabbitMQ's default `/` virtual host.
+
+A workaround is to remove the `inline` directive from `CharPosInSet()` in `IdGlobal.pas`:
+
+```delphi
+function CharPosInSet(const AString: string;
+  const ACharPos: Integer; const ASet: String): Integer;
+```
+
+instead of:
+
+```delphi
+function CharPosInSet(const AString: string;
+  const ACharPos: Integer; const ASet: String): Integer;
+{$IFDEF USE_INLINE}inline;{$ENDIF}
+```
+
+Rebuild Indy and the application after making this change.
+
+## Using the demo with Lazarus
+
+The demo can also be compiled with **Lazarus / Free Pascal (FPC)**.
+
+### Requirements
+
+* Lazarus with a recent Free Pascal compiler
+* RabbitMQ with the Management plugin enabled
+* RabbitMQ Management API available at `http://localhost:15672/`
+* A RabbitMQ user with permission to access the Management API
+
+### Opening the project
+
+Open the Lazarus project file:
+
+```text
+RabbitMQRestDemo.lpi
+```
+
+in Lazarus.
+
+If Lazarus asks to locate the project source files or Indy units, add the required Indy source directories to the project's search path.
+
+### Indy
+
+The demo uses Indy for HTTP communication. Make sure a Lazarus-compatible version of **Indy 10** is available in the FPC/Lazarus environment.
+
+Depending on how Indy was installed, you may need to add the Indy source directories to:
+
+**Project → Project Options → Compiler Options → Paths → Other unit files**
+
+Typically the relevant Indy directories include:
+
+```text
+Indy10/Lib
+Indy10/Lib/Core
+Indy10/Lib/System
+Indy10/Lib/Protocols
+```
+
+The exact paths depend on where Indy is installed.
+
+### Running the demo
+
+Start RabbitMQ and make sure the Management API is enabled. Then run the demo from Lazarus.
+
+The default Management API URL is:
+
+```text
+http://localhost:15672/
+```
+
+The demo uses the RabbitMQ Management REST API to perform operations such as declaring exchanges/queues and publishing messages.
+
+For the default RabbitMQ virtual host `/`, the `/` character must be URL-encoded as `%2F`. For example:
+
+```text
+http://localhost:15672/api/exchanges/%2F/amq.direct/publish
+```
+
+Do not replace `%2F` with `/`, as that changes the meaning of the RabbitMQ API URL.
+
+### Troubleshooting
+
+If Lazarus reports missing Indy units, check the project's unit search path and make sure the required Indy directories are included.
+
+If the demo compiles but fails to connect, first verify that RabbitMQ's Management API is reachable in a browser:
+
+```text
+http://localhost:15672/
+```
+
+The default RabbitMQ Management API port is `15672`.
+
+For authentication, the demo uses RabbitMQ's HTTP API credentials rather than the AMQP connection settings.
 
 ---
 
