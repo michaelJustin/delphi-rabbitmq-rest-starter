@@ -114,7 +114,7 @@ begin
 end;
 
 begin
-  ReportMemoryLeaksOnShutdown := True;
+  // ReportMemoryLeaksOnShutdown := True;
 
   try
     Writeln('==================================================');
