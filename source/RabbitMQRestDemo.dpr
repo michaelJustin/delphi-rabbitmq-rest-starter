@@ -34,10 +34,10 @@ begin
   try
     // Construct JSON payload
     JSON.Append('{');
-    JSON.Append('"properties": {},');
-    JSON.Append('"routing_key": "' + ROUTING_KEY + '",');
-    JSON.Append('"payload": "' + AMessage + '",');
-    JSON.Append('"payload_encoding": "string"');
+    JSON.Append('  "properties": {},');
+    JSON.Append('  "routing_key": "' + ROUTING_KEY + '",');
+    JSON.Append('  "payload": "' + AMessage + '",');
+    JSON.Append('  "payload_encoding": "string"');
     JSON.Append('}');
 
     RequestBody := TStringStream.Create(JSON.ToString, TEncoding.UTF8);
