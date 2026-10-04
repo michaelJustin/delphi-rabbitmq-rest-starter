@@ -50,45 +50,6 @@ If the starter kit fails to run or connect, check these common error messages an
 *   **Cause:** The application cannot find a running broker at the specified IP address or port.
 *   **Fix:** Ensure RabbitMQ is running locally (check your Windows Services or Docker containers). Verify you are targeting port `15672` (the Management port) and **not** `5672` (the native AMQP protocol port).
 
-### ❗ Delphi 2009 + Indy: `Range check error` when using the default vhost
-
-If you are using **Delphi 2009 with Indy 10.6.3.14**, a request such as:
-
-```text
-http://localhost:15672/api/exchanges/%2F/amq.direct/publish
-```
-
-may raise a Delphi `ERangeError` before the HTTP request is sent.
-
-The call stack typically ends in:
-
-```text
-IdGlobal.CharIsInSet
-IdURI.TIdURI.NormalizePath
-IdURI.TIdURI.SetURI
-IdURI.TIdURI.Create
-IdHTTP.TIdCustomHTTP.PrepareRequest
-```
-
-This is caused by an incompatibility involving Delphi 2009, range checking, and the `inline` implementation of Indy's `CharPosInSet()` helper. The `%2F` in the URL is valid and is required to represent RabbitMQ's default `/` virtual host.
-
-A workaround is to remove the `inline` directive from `CharPosInSet()` in `IdGlobal.pas`:
-
-```delphi
-function CharPosInSet(const AString: string;
-  const ACharPos: Integer; const ASet: String): Integer;
-```
-
-instead of:
-
-```delphi
-function CharPosInSet(const AString: string;
-  const ACharPos: Integer; const ASet: String): Integer;
-{$IFDEF USE_INLINE}inline;{$ENDIF}
-```
-
-Rebuild Indy and the application after making this change.
-
 ## Using the demo with Lazarus
 
 The demo can also be compiled with **Lazarus / Free Pascal (FPC)**.
