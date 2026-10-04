@@ -94,21 +94,23 @@ begin
       JSON.Append('  "encoding": "auto"');
       JSON.Append('}');
       RequestBody := TStringStream.Create(JSON.ToString, TEncoding.UTF8);
+      try
+        TargetURL := Format('http://%s:%s/api/queues/%s/%s/get',
+          [RABBITMQ_HOST, RABBITMQ_PORT, RABBITMQ_VHOST, TARGET_QUEUE]);
 
-      TargetURL := Format('http://%s:%s/api/queues/%s/%s/get',
-        [RABBITMQ_HOST, RABBITMQ_PORT, RABBITMQ_VHOST, TARGET_QUEUE]);
-
-      Writeln('Fetching message via HTTP POST...');
-      Response := IdHTTP.Post(TargetURL, RequestBody);
-      if Response = '[]' then
-        Writeln('Fetch Response: [Queue is empty]')
-      else
-        Writeln('Fetch Response: ' + Response);
+        Writeln('Fetching message via HTTP POST...');
+        Response := IdHTTP.Post(TargetURL, RequestBody);
+        if Response = '[]' then
+          Writeln('Fetch Response: [Queue is empty]')
+        else
+          Writeln('Fetch Response: ' + Response);
+      finally
+        RequestBody.Free;
+      end;
     finally
       JSON.Free;
     end;
   finally
-    RequestBody.Free;
     IdHTTP.Free;
   end;
 end;
