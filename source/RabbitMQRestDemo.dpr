@@ -2,8 +2,6 @@ program RabbitMQRestDemo;
 
 {$APPTYPE CONSOLE}
 
-{$R *.res}
-
 uses
   SysUtils,
   Classes,
