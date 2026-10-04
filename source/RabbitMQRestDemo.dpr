@@ -69,7 +69,7 @@ procedure FetchViaRabbitMQREST;
 var
   IdHTTP: TIdHTTP;
   JSON: TStringBuilder;
-  RequestBody: TStringStream;
+  RequestBody: TStream;
   Response: string;
   TargetURL: string;
 begin
@@ -114,7 +114,7 @@ begin
 end;
 
 begin
-  // ReportMemoryLeaksOnShutdown := True;
+  {$IFNDEF FPC}ReportMemoryLeaksOnShutdown := True;{$ENDIF}
 
   try
     Writeln('==================================================');
